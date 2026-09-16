@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String
+  sales    Sale[]
+}
+
+model Client {
+  id           String @id @default(cuid())
+  codigo       Int    @unique @default(autoincrement())
+  cnpj         String @unique
+  razaoSocial  String
+  nomeFantasia String?
+  ie           String?
+  email        String?
+  telefone     String?
+  cep          String?
+  logradouro   String?
+  numero       String?
+  complemento  String?
+  bairro       String?
+  cidade       String?
+  estado       String?
+  obs          String?
+  ativo        Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sales        Sale[]
+}
+
+model Sale {
+  id           String @id @default(cuid())
+  numero       Int    @unique @default(autoincrement())
+  clientId     String
+  client       Client @relation(fields: [clientId], references: [id])
+  userId       String
+  user         User   @relation(fields: [userId], references: [id])
+  dataEmissao  DateTime @default(now())
+  valorTotal   Float
+  desconto     Float  @default(0)
+  valorLiquido Float
+  status       String @default("ABERTA")
+  obs          String?
+  items        SaleItem[]
+  installments Installment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SaleItem {
+  id            String @id @default(cuid())
+  saleId        String
+  sale          Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  descricao     String
+  quantidade    Int
+  valorUnitario Float
+  valorTotal    Float
+}
+
+model Installment {
+  id             String @id @default(cuid())
+  saleId         String
+  sale           Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  numeroParcela  Int
+  dataVencimento DateTime
+  valor          Float
+  status         String @default("PENDENTE")
+  linhaDigitavel String?
+  codigoBarras   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
